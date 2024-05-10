@@ -8,7 +8,7 @@ const todoSchema = new Schema({
 
 	completed: { type: Boolean, required: true, default: false },
 
-	date_time: { type: Date, required: true },
+	date_time: { type: String, required: true },
 })
 
 module.exports = Todo = mongoose.model('todo', todoSchema)
