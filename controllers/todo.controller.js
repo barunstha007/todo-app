@@ -7,12 +7,13 @@ const getAllTodo = async (req, res) => {
 	try {
 		let todos
 
-		if (filter === 'true') {
-			todos = await Todos.find({ completed: filter })
+		if (filter === 'done') {
+			todos = await Todos.find({ completed: true })
 		} else if (filter === 'upcoming') {
 			const currentDate = new Date()
 			todos = await Todos.find({
 				date_time: { $gte: currentDate.toISOString() },
+				completed: false,
 			}).sort({ date_time: 1 })
 		} else {
 			todos = await Todos.find().sort({ date_time: -1 })
@@ -23,18 +24,18 @@ const getAllTodo = async (req, res) => {
 		})
 	} catch (error) {
 		console.log(error)
-		res.status(400).json({ error: error.message })
+		res.status(500).json({ error: error.message })
 	}
 }
 
 const createTodo = async (req, res) => {
 	const todoData = req.body
-	const { name, description, date_time } = req.body
+	const { name, description, date_time, completed } = req.body
 	try {
 		if (!name || !description || !date_time) {
 			return res
 				.status(400)
-				.json({ error: 'Title,Description and Date time are required' })
+				.json({ error: 'Name,Description and Date time are required' })
 		}
 		const newTodo = await Todos.create(todoData)
 		res
@@ -52,9 +53,7 @@ const updateTodo = async (req, res) => {
 	try {
 		// Check if the id is valid
 		if (!mongoose.Types.ObjectId.isValid(id)) {
-			return res
-				.status(404)
-				.json({ message: `There is no todo with the id of ${id}` })
+			return res.status(404).json({ message: `Invalid todo ID : ${id}` })
 		}
 		const todoId = { _id: id }
 		const updateTodo = await Todos.findOneAndUpdate(todoId, {
@@ -70,7 +69,7 @@ const updateTodo = async (req, res) => {
 				.json({ message: `There is no todo with the id of ${id}` })
 		}
 		res.status(200).json({
-			message: `Todo with the id:${id} has been updated`,
+			message: `Todo with the id:${id} updated successfully.`,
 		})
 	} catch (error) {
 		console.log(error)
@@ -88,9 +87,7 @@ const deleteTodo = async (req, res) => {
 
 		const deleteTodo = await Todos.findOneAndDelete({ _id: id })
 		if (!deleteTodo) {
-			return res
-				.status(404)
-				.json({ message: `There is no todo with the id of ${id}` })
+			return res.status(404).json({ message: `Invalid todo ID : ${id}` })
 		}
 		res.status(200).json({
 			message: `Todo with the id:${id} has been deleted`,
